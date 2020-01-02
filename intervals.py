@@ -45,7 +45,7 @@ class Interval(object):
         Symbol: m
         Boolean Expression:  
 
-        This interval starts before the interval and ends before or at the start of
+        This interval starts before the interval and ends at the start of
         the other interval.
 
         """
@@ -171,7 +171,10 @@ class Interval(object):
         """
         Returns the intersection of this interval and the other interval.
         """
-        return Interval(max(self.start, other.start), min(self.end, other.end))
+        if self.overlaps(other) and not (self.meets(other) or self.met_by(other)):
+            return Interval(max(self.start, other.start), min(self.end, other.end))
+        else:
+            return None
 
     def union(self, other):
         """
@@ -179,6 +182,28 @@ class Interval(object):
         """
         return Interval(min(self.start, other.start), min(self.end, other.end))
 
+    def subtract(self, other):
+        """
+        Returns and interval with the other interval subtracted from this interval.
+        """
+        if self.overlaps(other):
+            start_datetime = self.start
+            end_datetime = other.start
+        elif self.overlapped_by(other):
+            start_datetime = 2
+
+            return Interval()
+
+    # Computed Properties
+    @property
+    def duration(self):
+        return (self.end - self.start)
+
+    @property
+    def seconds(self):
+        return self.duration.total_seconds()
+
+    # Python Operators
     def __lt__(self, other):
         return self.preceeds(other)
 
@@ -197,3 +222,14 @@ class Interval(object):
     def __ne__(self, other):
         return not self.equals(other)
 
+    def __and__(self, other):
+        return self.intersection(other)
+    
+    def __or__(self, other):
+        return self.union(other)
+    
+    def __str__(self):
+        return "<Interval: Start: {}, End: {}>".format(self.start.isoformat(), self.end.isoformat())
+    
+    def __repr__(self):
+        return "<Interval: Start: {}, End: {}>".format(self.start.isoformat(), self.end.isoformat())
